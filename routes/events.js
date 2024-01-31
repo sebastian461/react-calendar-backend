@@ -11,14 +11,27 @@ const {
   eliminarEvento,
 } = require("../controllers/events");
 const { validarJWT } = require("../middlewares/validar-jwt");
+const { check } = require("express-validator");
+const { validarCampos } = require("../middlewares/validar-campos");
+const { isDate } = require("../helpers/isDate");
 
-//Obtener eventos
-//Rutas deben tener validaciones
 const router = Router();
 
-router.get("/", validarJWT, getEventos);
-router.post("/", validarJWT, crearEvento);
-router.put("/:id", validarJWT, actualizarEvento);
-router.delete("/:id", validarJWT, eliminarEvento);
+//Rutas deben tener validaciones JWT
+router.use(validarJWT);
+
+router.get("/", getEventos);
+router.post(
+  "/",
+  [
+    check("title", "El titulo es obligatorio").not().isEmpty(),
+    check("start", "Fecha de inicio es obligatorio").custom(isDate),
+    check("end", "Fecha de finialización es obligatorio").custom(isDate),
+    validarCampos,
+  ],
+  crearEvento
+);
+router.put("/:id", actualizarEvento);
+router.delete("/:id", eliminarEvento);
 
 module.exports = router;
